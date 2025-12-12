@@ -1,8 +1,14 @@
 /**
  * @name AutoQuestComplete
  * @author VoidDeficit
+ * @authorId 392069116430647296
  * @version 1.0.0
  * @description Automatically completes Discord quests
+ * @donate https://www.paypal.me/MircoWittrien
+ * @patreon https://www.patreon.com/MircoWittrien
+ * @website https://mwittrien.github.io/
+ * @source https://github.com/VoidDeficit/BetterDiscordAddons/tree/AutoQuestCompleter/Plugins/AutoQuestCompleter
+ * @updateUrl https://raw.githubusercontent.com/VoidDeficit/BetterDiscordAddons/refs/heads/AutoQuestCompleter/Plugins/AutoQuestCompleter/AutoQuestCompleter.plugin.js
  */
 
 module.exports = meta => ({
