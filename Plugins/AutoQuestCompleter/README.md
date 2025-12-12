@@ -15,4 +15,4 @@
 Automatically completes Discord quests
 
 
-![cover](https://mwittrien.github.io/BetterDiscordAddons/Plugins/BetterFriendList/_res/cover.png)
+![cover](https://raw.githubusercontent.com/VoidDeficit/BetterDiscordAddons/refs/heads/AutoQuestCompleter/Plugins/AutoQuestCompleter/_res/cover.png)
