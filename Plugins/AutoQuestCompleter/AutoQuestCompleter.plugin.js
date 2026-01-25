@@ -2,7 +2,7 @@
  * @name AutoQuestComplete
  * @author VoidDeficit
  * @authorId 392069116430647296
- * @version 1.0.0
+ * @version 1.0.1
  * @description Automatically completes Discord quests
  * @donate https://www.paypal.me/MircoWittrien
  * @patreon https://www.patreon.com/MircoWittrien
