@@ -2,7 +2,7 @@
  * @name OldTitleBar
  * @author DevilBro
  * @authorId 278543574059057154
- * @version 1.8.9
+ * @version 1.9.2
  * @description Allows you to switch to Discord's old Titlebar
  * @invite Jx3TjNS
  * @donate https://www.paypal.me/MircoWittrien
@@ -63,7 +63,7 @@ module.exports = (_ => {
 	} : (([Plugin, BDFDB]) => {
 		var _this;
 		var patched, lastWindowRects;
-		var titleBarButton;
+		var titleBarLeading, titleBarTrailing;
 		var toolbars = [];
 		
 		const OldTitleBarToolbarComponent = class OldTitleBarToolbar extends BdApi.React.Component {
@@ -131,6 +131,7 @@ module.exports = (_ => {
 				this.defaults = {
 					general: {
 						addToSettings:		{value: true, 				description: "Adds a Titlebar to Settings Windows"},
+						copyHistoryButtons:	{value: true, 				description: "Adds the <- and -> Buttons to the Titlebar"},
 						reloadButton:		{value: true, 				description: "Adds a Reload Button to the Titlebar"},
 						minimizeButton:		{value: true, 				description: "Adds a Minimize Button to the Titlebar"},
 						maximizeButton:		{value: true, 				description: "Adds a Resize/Maximize Button to the Titlebar"},
@@ -146,7 +147,8 @@ module.exports = (_ => {
 					],
 					after: [
 						"AuthWrapper",
-						"SettingsView"
+						"SettingsView",
+						"TitleBar"
 					]
 				};
 				
@@ -155,9 +157,7 @@ module.exports = (_ => {
 						--custom-app-top-bar-height: 0px;
 					}
 					${BDFDB.dotCNS._oldtitlebarenabled + BDFDB.dotCN.titlebar},
-					${BDFDB.dotCNS._oldtitlebarenabled + BDFDB.dotCN.titlebarthick},
-					${BDFDB.dotCNS._oldtitlebarenabled + BDFDB.dotCN.authboxcharacterbackground}:before,
-					${BDFDB.dotCNS._oldtitlebarenabled + BDFDB.dotCN.authboxsplashbackground}:before {
+					${BDFDB.dotCNS._oldtitlebarenabled + BDFDB.dotCN.titlebarthick} {
 						display: none !important;
 					}
 					
@@ -200,6 +200,10 @@ module.exports = (_ => {
 						gap: 5px;
 						align-items: center;
 					}
+					${BDFDB.dotCNS._oldtitlebarextrabuttons + BDFDB.dotCN.channelheadericonwrapper} > svg {
+						width: 28px !important;
+						height: 28px !important;
+					}
 					
 					${BDFDB.dotCN.chatthreadsidebaropen} > *:first-child ${BDFDB.dotCN._oldtitlebartoolbar},
 					${BDFDB.dotCN.chatthreadsidebaropen} ~ * ${BDFDB.dotCN._oldtitlebarextrabuttons} {
@@ -217,13 +221,6 @@ module.exports = (_ => {
 					}
 					.platform-win ${BDFDB.dotCN._oldtitlebarsettingstoolbar} {
 						top: 22px;
-					}
-					
-					${BDFDB.dotCNS._oldtitlebarenabled + BDFDB.dotCNS.authboxcharacterbackground + BDFDB.dotCN._oldtitlebarsettingstoolbar},
-					${BDFDB.dotCNS._oldtitlebarenabled + BDFDB.dotCNS.authboxsplashbackground + BDFDB.dotCN._oldtitlebarsettingstoolbar} {
-						background: rgba(0, 0, 0, 0.3);
-						border-radius: 0 0 0 5px;
-						top: 0;
 					}
 
 					${BDFDB.dotCN.channelheaderheaderbar},
@@ -284,7 +281,10 @@ module.exports = (_ => {
 			}
 			
 			processTitleBar (e) {
-				titleBarButton = e.instance.props.trailing;
+				if (!e.returnvalue) {
+					titleBarLeading = e.instance.props.leading;
+					titleBarTrailing = e.instance.props.trailing;
+				}
 			}
 			
 			processHeaderBarDiscovery (e) {
@@ -303,9 +303,13 @@ module.exports = (_ => {
 						BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.Flex, {children})
 					];
 				}
-				if (titleBarButton) children.push(BDFDB.ReactUtils.createElement("div", {
+				if (titleBarTrailing) children.push(BDFDB.ReactUtils.createElement("div", {
 					className: BDFDB.disCN._oldtitlebarextrabuttons,
-					children: titleBarButton
+					children: titleBarTrailing
+				}));
+				if (this.settings.general.copyHistoryButtons && titleBarLeading) children.push(BDFDB.ReactUtils.createElement("div", {
+					className: BDFDB.disCN._oldtitlebarextrabuttons,
+					children: titleBarLeading
 				}));
 				this.injectButtons(children, true);
 			}

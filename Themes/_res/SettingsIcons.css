@@ -630,7 +630,7 @@ body #app-mount .layer__960e4 ~ .layer__960e4 .sidebar__23e6b {
 .standardSidebarView__23e6b .contentColumnDefault__23e6b > *:first-child > .settingsTabBar_dc2e0e::before {
 	content: "";
 	display: inline-block;
-	color: var(--header-primary);
+	color: var(--text-strong);
 	position: relative;
 	flex: 0 0 auto;
 	width: calc(var(--use-settingsicons) * 18px);

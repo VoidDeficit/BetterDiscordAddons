@@ -2,7 +2,7 @@
  * @name MessageUtilities
  * @author DevilBro
  * @authorId 278543574059057154
- * @version 2.0.0
+ * @version 2.0.1
  * @description Adds several Quick Actions for Messages (Delete, Edit, Pin, etc.)
  * @invite Jx3TjNS
  * @donate https://www.paypal.me/MircoWittrien
@@ -270,7 +270,7 @@ module.exports = (_ => {
 								}
 								if (action) hint = this.getActiveShortcutString(action);
 							}
-							if (hint) item.props.hint = _ => {
+							if (hint) item.props.icon = _ => {
 								return BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.MenuItems.MenuHint, {
 									hint: hint
 								});

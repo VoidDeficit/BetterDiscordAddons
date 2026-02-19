@@ -2,7 +2,7 @@
  * @name DisplayServersAsChannels
  * @author DevilBro
  * @authorId 278543574059057154
- * @version 1.9.8
+ * @version 2.0.2
  * @description Displays Servers in a similar way as Channels
  * @invite Jx3TjNS
  * @donate https://www.paypal.me/MircoWittrien
@@ -79,7 +79,8 @@ module.exports = (_ => {
 				this.modulePatches = {
 					before: [
 						"GuildItem",
-						"TooltipContainer"
+						"TooltipContainer",
+						"TooltipContainerWithShortcut"
 					],
 					after: [
 						"CircleIconButton",
@@ -97,6 +98,7 @@ module.exports = (_ => {
 				
 				this.css = `
 					${BDFDB.dotCN.guildlistitemtooltip},
+					${BDFDB.dotCN.tooltip}:has(${BDFDB.dotCN.guildlistitemtooltip}),
 					${BDFDB.dotCN._displayserversaschannelsname} ~ ${BDFDB.dotCN.guildfolderbuttoninner} {
 						display: none !important;
 					}
@@ -229,9 +231,11 @@ module.exports = (_ => {
 				if (!e.returnvalue) {
 					let guildcontainer = BDFDB.ReactUtils.findChild(e.instance, {props: [["className", BDFDB.disCN.guildcontainer]]});
 					if (guildcontainer) guildcontainer.props.className = BDFDB.DOMUtils.formatClassName(guildcontainer.props.className, BDFDB.LibraryStores.UserGuildSettingsStore.isMuted(e.instance.props.guild.id) && BDFDB.disCN._displayserversaschannelsmuted);
-					e.instance.props.children = this.removeMask(e.instance.props.children);
-					this.addElementName(e.instance.props.children, e.instance.props.guild.name, {
-						badges: [
+					e.instance.props.children = this.removeMask(this.removeMask(e.instance.props.children));
+					let backBadges = [e.instance.props.children.props.children].flat(10).slice(1);
+					e.instance.props.children.props.children = [[e.instance.props.children.props.children].flat(10)[0]];
+					this.addElementName([e.instance.props.children.props.children].flat(10)[0], e.instance.props.guild.name, {
+						frontBadges: [
 							this.settings.general.showGuildIcon && BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.GuildIcon, {
 								animate: e.instance.props.animatable && e.instance.state && e.instance.state.hovered,
 								guild: e.instance.props.guild,
@@ -244,7 +248,8 @@ module.exports = (_ => {
 								tooltipPosition: BDFDB.LibraryComponents.TooltipContainer.Positions.RIGHT,
 								guild: e.instance.props.guild
 							})
-						]
+						],
+						backBadges: backBadges
 					});
 				}
 				else {
@@ -285,7 +290,7 @@ module.exports = (_ => {
 					wrap: true,
 					index: 0,
 					backgroundColor: e.instance.props.expanded && BDFDB.ColorUtils.setAlpha(folderColor, 0.2),
-					badges: badge || BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.SvgIcon, {
+					frontBadges: badge || BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.SvgIcon, {
 						color: folderColor,
 						width: folderSize,
 						height: folderSize,
@@ -313,6 +318,11 @@ module.exports = (_ => {
 			
 			processTooltipContainer (e) {
 				if (!e.instance.props.tooltipClassName || e.instance.props.tooltipClassName.indexOf(BDFDB.disCN.guildlistitemtooltip) == -1) return;
+				e.instance.props.shouldShow = false;
+			}
+			
+			processTooltipContainerWithShortcut (e) {
+				if (!e.instance.props.__unsupportedReactNodeAsText || !e.instance.props.__unsupportedReactNodeAsText.props || !e.instance.props.__unsupportedReactNodeAsText.props.className || e.instance.props.__unsupportedReactNodeAsText.props.className.indexOf(BDFDB.disCN.guildlistitemtooltip) == -1) return;
 				e.instance.props.shouldShow = false;
 			}
 			
@@ -393,7 +403,7 @@ module.exports = (_ => {
 								src: returnvalue.props.icon,
 								size: BDFDB.LibraryComponents.AvatarConstants.AvatarSizes.SIZE_24
 							}),
-							options.badges,
+							options.frontBadges,
 						].flat(10).filter(n => n).map(badge => BDFDB.ReactUtils.createElement("div", {
 							className: BDFDB.disCN._displayserversaschannelsbadge,
 							children: badge
@@ -404,7 +414,7 @@ module.exports = (_ => {
 								children: name
 							})
 						}),
-						[returnvalue.props.children, options.wrap && children.slice(index + 1)].flat(10).filter(n => !(n && (n.type && n.type.displayName == "FolderIcon" || n.props && n.props.className && n.props.className.indexOf(BDFDB.disCN.guildfoldericonwrapper) > -1)))
+						[returnvalue.props.children, options.backBadges, options.wrap && children.slice(index + 1)].flat(10).filter(n => !(n && (n.type && n.type.displayName == "FolderIcon" || n.props && n.props.className && n.props.className.indexOf(BDFDB.disCN.guildfoldericonwrapper) > -1)))
 					].flat().filter(n => n);
 					delete returnvalue.props.icon;
 					delete returnvalue.props.name;

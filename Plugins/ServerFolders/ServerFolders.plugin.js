@@ -2,7 +2,7 @@
  * @name ServerFolders
  * @author DevilBro
  * @authorId 278543574059057154
- * @version 7.4.3
+ * @version 7.4.7
  * @description Changes Discord's Folders, Servers open in a new Container, also adds extra Features to more easily organize, customize and manage your Folders
  * @invite Jx3TjNS
  * @donate https://www.paypal.me/MircoWittrien
@@ -64,6 +64,7 @@ module.exports = (_ => {
 		var _this;
 		var folderStates, folderReads, guildStates, currentGuild, forceCloseTimeout;
 		var folderConfigs = {}, customIcons = {};
+		var folderModal = {};
 
 		const folderIcons = [
 			{openicon: `<path d="M 200,390 H 955 L 795,770 H 200 Z" fill="REPLACE_FILL2"/><path d="M 176.6,811 C 163.9,811 155.1,802.6 155,784.7 V 212.9 C 157.9,190.5 169,179.8 195.9,176 h 246 c 20.3,3.2 34.5,18.7 41,28.6 C 494.9,228.3 492.9,240.4 494,266 l 313.6,1.3 c 17.6,0.4 23.3,3.7 23.3,3.7 8.6,4.2 14.8,10.7 19,19.5 C 856.3,319.5 854,360 854,360 h 108.9 c 4.4,2.4 13.7,1.2 11.8,23.5 L 815.8,789.4 c -2.1,5.2 -12.5,13.6 -18.7,16.1 -6.8,2.7 -18.5,5.5 -23.9,5.5 z M 767,759 897,430 H 360 L 230,759 Z" fill="REPLACE_FILL1"/>`,
@@ -489,17 +490,14 @@ module.exports = (_ => {
 						"FolderItem",
 						"FolderSettingsModal",
 						"GuildsBar",
-						"ModalRoot",
-						"TooltipContainer"
+						"TooltipContainer",
+						"TooltipContainerWithShortcut"
 					],
 					after: [
 						"FolderIconWrapper",
-						"FolderSettingsModal",
 						"GuildItem",
-						"GuildsBar"
-					],
-					componentDidMount: [
-						"FolderSettingsModal"
+						"GuildsBar",
+						"Modal"
 					]
 				};
 				
@@ -889,12 +887,12 @@ module.exports = (_ => {
 				
 				e.instance.props.shouldShow = false;
 				let data = this.getFolderConfig(child.props.children.props.folderNode.id);
-		
+				
 				let childrenRender = e.instance.props.children;
 				e.instance.props.children = BDFDB.TimeUtils.suppress((...args) => BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.TooltipContainer, {
 					text: child.props.children.props.folderNode.name || e.instance.props.text,
 					tooltipConfig: {
-						className: BDFDB.disCN.guildlistitemtooltip,
+						contentClassName: BDFDB.disCN.guildlistitemtooltip,
 						type: "right",
 						list: true,
 						offset: 4,
@@ -903,6 +901,28 @@ module.exports = (_ => {
 					},
 					children: childrenRender(...args)
 				}), "Error in children Render of Guild Folder Tooltip!");
+			}
+			
+			processTooltipContainerWithShortcut (e) {
+				let folderNode = BDFDB.ObjectUtils.get(e.instance.props, "children.props.children.props.folderNode");
+				if (!folderNode) return;
+				
+				e.instance.props.shouldShow = false;
+				let data = this.getFolderConfig(folderNode.id);
+		
+				let childrenRender = e.instance.props.children;
+				e.instance.props.children = BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.TooltipContainer, {
+					text: folderNode.name || e.instance.props.__unsupportedReactNodeAsText && e.instance.props.__unsupportedReactNodeAsText.props.children || "",
+					tooltipConfig: {
+						contentClassName: BDFDB.disCN.guildlistitemtooltip,
+						type: "right",
+						list: true,
+						offset: 4,
+						backgroundColor: data.color3,
+						fontColor: data.color4
+					},
+					children: e.instance.props.children
+				});
 			}
 			
 			processGuildItem (e) {
@@ -943,15 +963,18 @@ module.exports = (_ => {
 				}
 			}
 			
-			processModalRoot (e) {
-				if (e.instance.props["aria-label"] != BDFDB.LanguageUtils.LanguageStrings.FOLDER_SETTINGS) return;
-				e.instance.props.size = BDFDB.LibraryComponents.ModalComponents.ModalSize.LARGE;
+			processFolderSettingsModal (e) {
+				folderModal = BDFDB.ObjectUtils.extract(e.instance.props, ["folderColor", "folderId", "folderName"]);
 			}
 			
-			processFolderSettingsModal (e) {
-				let folder = BDFDB.LibraryStores.SortedGuildStore.getGuildFolderById(e.instance.props.folderId);
-				let data = this.getFolderConfig(e.instance.props.folderId);
+			processModal (e) {
+				if (e.instance.props.title != BDFDB.LanguageUtils.LanguageStrings.FOLDER_SETTINGS) return;
+				
+				let folder = BDFDB.LibraryStores.SortedGuildStore.getGuildFolderById(folderModal.folderId);
+				let data = this.getFolderConfig(folderModal.folderId);
 				let newData = Object.assign({}, data, {folderName: folder.folderName});
+				
+				e.returnvalue.props.size = "lg";
 				
 				let tabs = {};
 				
@@ -978,7 +1001,7 @@ module.exports = (_ => {
 						})
 					}));
 				}
-				[children, index] = BDFDB.ReactUtils.findParent(e.returnvalue, {filter: n => n && n.props && n.props.children && n.props.children.type == "form"});
+				[children, index] = BDFDB.ReactUtils.findParent(e.returnvalue, {name: "ModalContent"});
 				if (index > -1) children[index].props.children = [
 					BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.ModalComponents.ModalTabContent, {
 						tab: this.labels.modal_tabheader1,
@@ -1083,23 +1106,28 @@ module.exports = (_ => {
 				];
 				[children, index] = BDFDB.ReactUtils.findParent(e.returnvalue, {name: "ModalFooter"});
 				if (index > -1) children[index].props.children = [
-					BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.Button, {
-						children: BDFDB.LanguageUtils.LanguageStrings.SAVE,
-						onClick: _ => {								
-							let folderColor = newData[newData.swapColors ? "color2" : "color1"];
-							this.updateFolder({
-								folderId: e.instance.props.folderId,
-								folderName: newData.folderName,
-								folderColor: folderColor ? BDFDB.ColorUtils.convert(folderColor && BDFDB.ObjectUtils.is(folderColor) ? folderColor[Object.keys(folderColor)[0]] : folderColor, "INT") : null
-							});
-							if (!BDFDB.equals(newData, data)) {
-								BDFDB.DataUtils.save(newData, this, "folders", e.instance.props.folderId);
-								this.forceUpdateAll();
+					BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.Flex, {
+						direction: BDFDB.LibraryComponents.Flex.Direction.HORIZONTAL_REVERSE,
+						children: BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.Button, {
+							children: BDFDB.LanguageUtils.LanguageStrings.SAVE,
+							onClick: _ => {
+								let folderColor = newData[newData.swapColors ? "color2" : "color1"];
+								this.updateFolder({
+									folderId: folderModal.folderId,
+									folderName: newData.folderName,
+									folderColor: folderColor ? BDFDB.ColorUtils.convert(folderColor && BDFDB.ObjectUtils.is(folderColor) ? folderColor[Object.keys(folderColor)[0]] : folderColor, "INT") : null
+								});
+								if (!BDFDB.equals(newData, data)) {
+									BDFDB.DataUtils.save(newData, this, "folders", folderModal.folderId);
+									this.forceUpdateAll();
+								}
+								e.instance.props.onClose();
 							}
-							e.instance.close();
-						}
+						})
 					})
 				];
+				[children, index] = BDFDB.ReactUtils.findParent(e.returnvalue, {name: "ModalActions"});
+				children[index] = null;
 			}
 
 			loadAllIcons () {

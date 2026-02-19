@@ -2,7 +2,7 @@
  * @name NotificationSounds
  * @author DevilBro
  * @authorId 278543574059057154
- * @version 4.0.5
+ * @version 4.0.7
  * @description Allows you to replace the native Sounds with custom Sounds
  * @invite Jx3TjNS
  * @donate https://www.paypal.me/MircoWittrien
@@ -182,7 +182,7 @@ module.exports = (_ => {
 						globalVolume:		{value: 100,	description: "Global Notification Sounds Volume"}
 					},
 					toggles: {
-						playIfMuted: 		{value: false,	description: "Play Sounds If Muted"}
+						playIfMuted: 		{value: false,	description: "Play Sounds Of Muted Channels/Servers"}
 					}
 				};
 				
@@ -252,7 +252,7 @@ module.exports = (_ => {
 				}
 				
 				BDFDB.PatchUtils.patch(this, BDFDB.LibraryModules.DispatchApiUtils, "dispatch", {after: e => {
-					if (BDFDB.ObjectUtils.is(e.methodArguments[0]) && e.methodArguments[0].type == "CALL_UPDATE" && !e.methodArguments[0].ringing.includes(BDFDB.UserUtils.me.id)) {
+					if (BDFDB.ObjectUtils.is(e.methodArguments[0]) && (e.methodArguments[0].type == "CALL_DELETE" || e.methodArguments[0].type == "CALL_UPDATE" && !e.methodArguments[0].ringing.includes(BDFDB.UserUtils.me.id))) {
 						["call_ringing", "call_calling"].forEach(type => {
 							if (createdAudios[type]) createdAudios[type].stop();
 						});
@@ -503,7 +503,9 @@ module.exports = (_ => {
 														align: BDFDB.LibraryComponents.Flex.Align.CENTER,
 														children: n.label
 													}),
-													hint: n.hint,
+													icon: _ => BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.MenuItems.MenuHint, {
+														hint: n.hint
+													}),
 													id: BDFDB.ContextMenuUtils.createItemId(this.name, type, n.key),
 													checked: choices[type][n.key],
 													action: state => {
